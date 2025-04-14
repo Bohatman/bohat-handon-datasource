@@ -43,6 +43,14 @@ export function ConfigEditor(props: Props) {
     });
   };
 
+  const onResolutionChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const jsonData = {
+      ...options.jsonData,
+      resolution: parseFloat(event.target.value),
+    };
+    onOptionsChange({...options, jsonData});
+  };
+
   return (
     <>
       <InlineField label="Path" labelWidth={14} interactive tooltip={'Json field returned to frontend'}>
@@ -65,6 +73,9 @@ export function ConfigEditor(props: Props) {
           onReset={onResetAPIKey}
           onChange={onAPIKeyChange}
         />
+      </InlineField>
+      <InlineField label="Resolution" labelWidth={12}>
+        <Input onChange={onResolutionChange} value={jsonData.resolution ||  '' } placeholder='Enter a number' width={40} />
       </InlineField>
     </>
   );

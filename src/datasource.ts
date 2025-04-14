@@ -11,13 +11,19 @@ import {
 
 import { MyQuery, MyDataSourceOptions, DEFAULT_QUERY, DataSourceResponse } from './types';
 import { lastValueFrom } from 'rxjs';
+import defaults from 'lodash/defaults';
+export const defaultQuery: Partial<MyQuery> = {
+  constant: 6.5,
+};
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   baseUrl: string;
+  resolution: number;
 
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.baseUrl = instanceSettings.url!;
+    this.resolution =  instanceSettings.jsonData.resolution || 1000.0;
   }
 
   getDefaultQuery(_: CoreApp): Partial<MyQuery> {
@@ -29,6 +35,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return !!query.queryText;
   }
 
+
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { range } = options;
     const from = range!.from.valueOf();
@@ -36,13 +43,26 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     // Return a constant for each query.
     const data = options.targets.map((target) => {
-      return createDataFrame({
-        refId: target.refId,
-        fields: [
-          { name: 'Time', values: [from, to], type: FieldType.time },
-          { name: 'Value', values: [target.constant, target.constant], type: FieldType.number },
-        ],
+        // Your code goes gere
+        const query = defaults(target, defaultQuery);
+        const duration = to - from;
+        const step = duration / this.resolution;
+
+        let times = []
+        let values = [] 
+        // Value
+        for(let t = 0; t < duration; t+= step){
+          times.push(from + t);
+          values.push(Math.sin((2*Math.PI * query.frequency * t)/ duration));
+        }
+        const frame = createDataFrame({
+          refId: query.refId,
+          fields: [
+            {name: "time", type: FieldType.time, values: times},
+            {name: "value", type: FieldType.number, values: values}
+          ]
       });
+        return frame;
     });
 
     return { data };

@@ -17,7 +17,12 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
     onRunQuery();
   };
 
-  const { queryText, constant } = query;
+  const onFrequencyChange = (event: ChangeEvent<HTMLInputElement>) => {
+      onChange({ ...query, frequency: parseFloat(event.target.value)});
+      onRunQuery();
+  };
+
+  const { queryText, constant,frequency } = query;
 
   return (
     <Stack gap={0}>
@@ -39,6 +44,9 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
           required
           placeholder="Enter a query"
         />
+      </InlineField>
+      <InlineField label="Frequency" labelWidth={16}>
+        <Input onChange={onFrequencyChange} value={frequency || ''}></Input>
       </InlineField>
     </Stack>
   );
